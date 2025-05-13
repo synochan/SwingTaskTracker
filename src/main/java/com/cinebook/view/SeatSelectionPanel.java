@@ -373,26 +373,48 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
-     * Initializes the panel with screening information and seat map.
+     * Initializes the seat selection panel for the given screening.
+     * This gets fresh data from the database to ensure we have the latest seat status.
      *
-     * @param screening The screening for which seats are being selected
+     * @param screening The screening to initialize the panel for
      */
     public void initialize(Screening screening) {
-        this.currentScreening = screening;
-        this.selectedSeatIds.clear();
-        this.seatButtons.clear();
-        
-        // Update movie and screening info
-        updateScreeningInfo();
-        
-        // Load and display seat map
-        loadSeatMap();
-        
-        // Update pricing in legend
-        updateLegend();
-        
-        // Update selection summary
-        updateSelectionSummary();
+        try {
+            // Get a fresh copy of the screening from the database to ensure we have latest data
+            this.currentScreening = screeningController.getScreeningById(screening.getId());
+            if (this.currentScreening == null) {
+                // Fallback to the provided screening if database retrieval fails
+                this.currentScreening = screening;
+            }
+            
+            // Reset selections
+            this.selectedSeatIds.clear();
+            this.seatButtons.clear();
+            
+            // Update movie and screening info
+            updateScreeningInfo();
+            
+            // Load and display seat map with fresh data
+            loadSeatMap();
+            
+            // Update pricing in legend
+            updateLegend();
+            
+            // Update selection summary
+            updateSelectionSummary();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            DialogManager.showErrorDialog(
+                mainFrame,
+                "An error occurred while initializing the seat map. Please try again.",
+                "Initialization Error"
+            );
+            
+            // Use the provided screening if there was an error
+            this.currentScreening = screening;
+            loadSeatMap();
+        }
     }
     
     /**
