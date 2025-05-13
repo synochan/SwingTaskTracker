@@ -1,8 +1,10 @@
 package com.cinebook.view;
 
+import com.cinebook.controller.AdminController;
 import com.cinebook.controller.ReservationController;
 import com.cinebook.controller.ScreeningController;
 import com.cinebook.controller.UserController;
+import com.cinebook.model.Cinema;
 import com.cinebook.model.Screening;
 import com.cinebook.model.Seat;
 import com.cinebook.model.SeatType;
@@ -231,8 +233,22 @@ public class SeatSelectionPanel extends JPanel {
                         mainFrame.getConcessionPanel().initialize();
                         mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
                     } else {
+                        // Create a modern error dialog with an icon
+                        JPanel errorPanel = new JPanel(new BorderLayout(10, 10));
+                        errorPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                        
+                        // Add error icon
+                        JLabel iconLabel = new JLabel();
+                        iconLabel.setIcon(UIManager.getIcon("OptionPane.errorIcon"));
+                        errorPanel.add(iconLabel, BorderLayout.WEST);
+                        
+                        // Error message
+                        JLabel messageLabel = new JLabel("Failed to add seats to the reservation. Please try again.");
+                        messageLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+                        errorPanel.add(messageLabel, BorderLayout.CENTER);
+                        
                         JOptionPane.showMessageDialog(mainFrame,
-                            "Failed to add seats to the reservation. Please try again.",
+                            errorPanel,
                             "Reservation Error",
                             JOptionPane.ERROR_MESSAGE);
                     }
@@ -613,14 +629,36 @@ public class SeatSelectionPanel extends JPanel {
             }
         }
         
-        // Create and show the AR preview
-        ARSeatPreviewPanel arPreviewPanel = new ARSeatPreviewPanel(
-            mainFrame, 
-            selectedSeats, 
-            currentScreening.getCinema(),
-            currentScreening.getMovieTitle()
-        );
-        
-        arPreviewPanel.showPreview();
+        try {
+            // Get the cinema from the DAO using the cinema ID from the screening
+            AdminController adminController = new AdminController(userController);
+            Cinema cinema = adminController.getCinemaById(currentScreening.getCinemaId());
+            
+            if (cinema == null) {
+                JOptionPane.showMessageDialog(mainFrame,
+                    "Could not find cinema information.",
+                    "Preview Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Create and show the AR preview
+            ARSeatPreviewPanel arPreviewPanel = new ARSeatPreviewPanel(
+                mainFrame, 
+                selectedSeats, 
+                cinema,
+                currentScreening.getMovieTitle()
+            );
+            
+            // Show the preview
+            arPreviewPanel.showPreview();
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(mainFrame,
+                "Error loading AR preview: " + e.getMessage(),
+                "Preview Error",
+                JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
 }
