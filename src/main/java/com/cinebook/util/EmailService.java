@@ -29,8 +29,55 @@ public class EmailService {
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final String SMTP_PORT = "587";
     private static final String EMAIL_FROM = "noreply@cinebook.com";
-    private static final String EMAIL_USERNAME = "username"; // Replace with actual email credentials
-    private static final String EMAIL_PASSWORD = "password"; // Replace with actual email credentials
+    private String emailUsername;
+    private String emailPassword;
+    
+    /**
+     * Constructor for EmailService.
+     * Initialize with default credentials that will need to be updated via setCredentials method.
+     */
+    public EmailService() {
+        // Initialize with empty credentials
+        this.emailUsername = "";
+        this.emailPassword = "";
+        
+        // Try to load credentials from config file or environment variables
+        loadCredentialsFromConfig();
+    }
+    
+    /**
+     * Load email credentials from a configuration file or environment variables.
+     */
+    private void loadCredentialsFromConfig() {
+        try {
+            // Check if environment variables are set
+            String username = System.getenv("EMAIL_USERNAME");
+            String password = System.getenv("EMAIL_PASSWORD");
+            
+            if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+                this.emailUsername = username;
+                this.emailPassword = password;
+                System.out.println("Email credentials loaded from environment variables.");
+            } else {
+                // For development/testing purposes, use default credentials
+                // In a production environment, this would be removed
+                System.out.println("Email credentials not found in environment variables.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading email credentials: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Set email credentials.
+     * 
+     * @param username The email username
+     * @param password The email password
+     */
+    public void setCredentials(String username, String password) {
+        this.emailUsername = username;
+        this.emailPassword = password;
+    }
     
     /**
      * Sends an email with the specified parameters.
@@ -216,7 +263,7 @@ public class EmailService {
         return Session.getInstance(props,
             new Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(EMAIL_USERNAME, EMAIL_PASSWORD);
+                    return new PasswordAuthentication(emailUsername, emailPassword);
                 }
             });
     }

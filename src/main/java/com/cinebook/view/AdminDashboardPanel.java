@@ -20,6 +20,7 @@ public class AdminDashboardPanel extends JPanel {
     // Child panels
     private MovieManagementPanel movieManagementPanel;
     private UserManagementPanel userManagementPanel;
+    private PromoCodeManagementPanel promoCodeManagementPanel;
     private ReportPanel reportPanel;
     
     // UI Components
@@ -41,6 +42,7 @@ public class AdminDashboardPanel extends JPanel {
         // Create child panels
         this.movieManagementPanel = new MovieManagementPanel(mainFrame, adminController);
         this.userManagementPanel = new UserManagementPanel(mainFrame, adminController);
+        this.promoCodeManagementPanel = new PromoCodeManagementPanel(mainFrame);
         this.reportPanel = new ReportPanel(mainFrame, adminController);
         
         // Setup panel properties
@@ -95,6 +97,7 @@ public class AdminDashboardPanel extends JPanel {
         // Add tabs
         tabbedPane.addTab("Movie Management", null, movieManagementPanel, "Manage movies and screenings");
         tabbedPane.addTab("User Management", null, userManagementPanel, "Manage user accounts");
+        tabbedPane.addTab("Promo Codes", null, promoCodeManagementPanel, "Manage promotional codes");
         tabbedPane.addTab("Reports & Analytics", null, reportPanel, "View sales reports and analytics");
         
         // Add listener to refresh data when tab is selected
@@ -109,6 +112,9 @@ public class AdminDashboardPanel extends JPanel {
                     userManagementPanel.refreshData();
                     break;
                 case 2:
+                    // PromoCodeManagementPanel refreshes itself when loaded
+                    break;
+                case 3:
                     reportPanel.refreshData();
                     break;
             }
@@ -139,6 +145,9 @@ public class AdminDashboardPanel extends JPanel {
                 userManagementPanel.refreshData();
                 break;
             case 2:
+                // PromoCodeManagementPanel refreshes itself when loaded
+                break;
+            case 3:
                 reportPanel.refreshData();
                 break;
         }

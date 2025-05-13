@@ -1,8 +1,8 @@
-modules = ["java"]
+modules = ["java", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["wget", "openjdk"]
+packages = ["wget", "openjdk", "sqlite"]
 
 [workflows]
 runButton = "Project"

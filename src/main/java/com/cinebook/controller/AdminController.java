@@ -4,11 +4,13 @@ import com.cinebook.dao.CinemaDAO;
 import com.cinebook.dao.ConcessionDAO;
 import com.cinebook.dao.PaymentDAO;
 import com.cinebook.dao.ReservationDAO;
+import com.cinebook.dao.UserDAO;
 import com.cinebook.model.Cinema;
 import com.cinebook.model.Concession;
 import com.cinebook.model.Payment;
 import com.cinebook.model.Reservation;
 import com.cinebook.model.User;
+import com.cinebook.util.PasswordUtil;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -30,6 +32,7 @@ public class AdminController {
     private ConcessionDAO concessionDAO;
     private PaymentDAO paymentDAO;
     private ReservationDAO reservationDAO;
+    private UserDAO userDAO;
     
     /**
      * Constructor for AdminController.
@@ -42,6 +45,7 @@ public class AdminController {
         this.concessionDAO = new ConcessionDAO();
         this.paymentDAO = new PaymentDAO();
         this.reservationDAO = new ReservationDAO();
+        this.userDAO = new UserDAO();
     }
     
     /**
@@ -57,6 +61,7 @@ public class AdminController {
         this.concessionDAO = new ConcessionDAO();
         this.paymentDAO = new PaymentDAO();
         this.reservationDAO = new ReservationDAO();
+        this.userDAO = new UserDAO();
     }
     
     /**
@@ -94,6 +99,25 @@ public class AdminController {
     }
     
     /**
+     * Adds a new user.
+     *
+     * @param user The User object to add
+     * @return The ID of the newly created user, or -1 if creation failed
+     */
+    public int addUser(User user) {
+        try {
+            // Hash the password before storing
+            String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
+            user.setPassword(hashedPassword);
+            
+            return userDAO.addUser(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+    
+    /**
      * Updates an existing user.
      *
      * @param user The User object with updated information
@@ -111,6 +135,57 @@ public class AdminController {
      */
     public boolean deleteUser(int id) {
         return userController.deleteUser(id);
+    }
+    
+    /**
+     * Resets a user's password.
+     *
+     * @param userId The ID of the user
+     * @param newPassword The new password
+     * @return true if the reset was successful, false otherwise
+     */
+    public boolean resetUserPassword(int userId, String newPassword) {
+        try {
+            // Hash the new password
+            String hashedPassword = PasswordUtil.hashPassword(newPassword);
+            
+            // Get the user
+            User user = userController.getUserById(userId);
+            if (user == null) {
+                return false;
+            }
+            
+            // Update the password
+            user.setPassword(hashedPassword);
+            return userDAO.updateUser(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    /**
+     * Sets a user's admin status.
+     *
+     * @param userId The ID of the user
+     * @param isAdmin The new admin status
+     * @return true if the update was successful, false otherwise
+     */
+    public boolean setUserAdminStatus(int userId, boolean isAdmin) {
+        try {
+            // Get the user
+            User user = userController.getUserById(userId);
+            if (user == null) {
+                return false;
+            }
+            
+            // Update the admin status
+            user.setAdmin(isAdmin);
+            return userDAO.updateUser(user);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
     
     /**

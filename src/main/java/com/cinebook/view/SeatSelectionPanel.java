@@ -40,6 +40,7 @@ public class SeatSelectionPanel extends JPanel {
     private JLabel totalPriceLabel;
     private JButton continueButton;
     private JButton cancelButton;
+    private JButton arPreviewButton;
     
     // Constants
     private static final int MAX_SEATS_PER_BOOKING = 6;
@@ -176,16 +177,40 @@ public class SeatSelectionPanel extends JPanel {
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
         
         // Selection info panel
-        JPanel selectionPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        JPanel selectionPanel = new JPanel(new BorderLayout());
         selectionPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createTitledBorder("Selection Summary"),
             new EmptyBorder(5, 5, 5, 5)));
         
+        JPanel infoPanel = new JPanel(new GridLayout(2, 1, 5, 5));
         selectedSeatsLabel = new JLabel("Selected Seats: None");
         totalPriceLabel = new JLabel("Total Price: ₱0.00");
         
-        selectionPanel.add(selectedSeatsLabel);
-        selectionPanel.add(totalPriceLabel);
+        infoPanel.add(selectedSeatsLabel);
+        infoPanel.add(totalPriceLabel);
+        
+        selectionPanel.add(infoPanel, BorderLayout.CENTER);
+        
+        // Add AR Preview button to the selection panel
+        arPreviewButton = new JButton("AR Seat Preview");
+        // Create a simple icon if the image is not available
+        try {
+            arPreviewButton.setIcon(new ImageIcon(getClass().getResource("/resources/images/ar_icon.png")));
+        } catch (Exception e) {
+            // Use text only if icon is not available
+        }
+        arPreviewButton.setEnabled(false); // Initially disabled until seats are selected
+        arPreviewButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showARPreview();
+            }
+        });
+        
+        // Button panel for AR preview
+        JPanel previewButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        previewButtonPanel.add(arPreviewButton);
+        selectionPanel.add(previewButtonPanel, BorderLayout.SOUTH);
         
         bottomPanel.add(selectionPanel, BorderLayout.CENTER);
         
@@ -408,6 +433,7 @@ public class SeatSelectionPanel extends JPanel {
             selectedSeatsLabel.setText("Selected Seats: None");
             totalPriceLabel.setText("Total Price: ₱0.00");
             continueButton.setEnabled(false);
+            arPreviewButton.setEnabled(false);
         } else {
             // Build selected seats text
             StringBuilder seatsText = new StringBuilder("Selected Seats: ");
@@ -433,6 +459,7 @@ public class SeatSelectionPanel extends JPanel {
             selectedSeatsLabel.setText(seatsText.toString());
             totalPriceLabel.setText(String.format("Total Price: ₱%.2f", totalPrice));
             continueButton.setEnabled(true);
+            arPreviewButton.setEnabled(true); // Enable AR preview when seats are selected
         }
     }
     
@@ -556,5 +583,44 @@ public class SeatSelectionPanel extends JPanel {
                 updateSelectionSummary();
             }
         }
+    }
+    
+    /**
+     * Shows the AR seat preview dialog.
+     */
+    private void showARPreview() {
+        if (currentScreening == null) {
+            JOptionPane.showMessageDialog(mainFrame,
+                "Please select a screening first.",
+                "No Screening Selected",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (selectedSeatIds.isEmpty()) {
+            JOptionPane.showMessageDialog(mainFrame,
+                "Please select at least one seat to preview.",
+                "No Seats Selected",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Get selected seats
+        List<Seat> selectedSeats = new ArrayList<>();
+        for (SeatButton button : seatButtons) {
+            if (button.isSelected()) {
+                selectedSeats.add(button.getSeat());
+            }
+        }
+        
+        // Create and show the AR preview
+        ARSeatPreviewPanel arPreviewPanel = new ARSeatPreviewPanel(
+            mainFrame, 
+            selectedSeats, 
+            currentScreening.getCinema(),
+            currentScreening.getMovieTitle()
+        );
+        
+        arPreviewPanel.showPreview();
     }
 }
