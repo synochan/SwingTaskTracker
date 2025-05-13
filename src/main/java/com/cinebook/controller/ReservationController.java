@@ -171,6 +171,19 @@ public class ReservationController {
                         }
                         return false;
                     }
+                    
+                    // Double-check that all seats were successfully reserved
+                    List<Seat> verifiedSeats = new ArrayList<>();
+                    for (int seatId : seatIds) {
+                        Seat verifiedSeat = seatDAO.getSeatById(seatId);
+                        if (verifiedSeat != null && verifiedSeat.isReserved()) {
+                            verifiedSeats.add(verifiedSeat);
+                        } else {
+                            // If any seat failed to be reserved, rollback
+                            seatDAO.updateMultipleSeatReservations(seatIds, false);
+                            return false;
+                        }
+                    }
                 }
             }
             

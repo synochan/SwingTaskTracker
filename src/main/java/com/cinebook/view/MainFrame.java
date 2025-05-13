@@ -1,5 +1,7 @@
 package com.cinebook.view;
 
+import com.cinebook.controller.ReservationController;
+import com.cinebook.controller.ScreeningController;
 import com.cinebook.controller.UserController;
 import com.cinebook.model.User;
 
@@ -18,6 +20,8 @@ public class MainFrame extends JFrame {
     
     // Controllers
     private UserController userController;
+    private ScreeningController screeningController;
+    private ReservationController reservationController;
     
     // Panels
     private LoginPanel loginPanel;
@@ -48,6 +52,8 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         // Initialize controllers
         userController = new UserController();
+        screeningController = new ScreeningController();
+        reservationController = new ReservationController();
         
         // Setup frame properties
         setTitle("CineBook CDO - Online Movie Ticket Booking");
@@ -106,7 +112,7 @@ public class MainFrame extends JFrame {
         loginPanel = new LoginPanel(this, userController);
         registerPanel = new RegisterPanel(this, userController);
         movieListingPanel = new MovieListingPanel(this, userController);
-        seatSelectionPanel = new SeatSelectionPanel(this, userController);
+        seatSelectionPanel = new SeatSelectionPanel(this, userController, screeningController, reservationController);
         concessionPanel = new ConcessionPanel(this, userController);
         paymentPanel = new PaymentPanel(this, userController);
         confirmationPanel = new ConfirmationPanel(this, userController);

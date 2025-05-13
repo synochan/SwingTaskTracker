@@ -26,9 +26,24 @@ public class UIStyle {
     public static final Color SURFACE_COLOR = Color.WHITE;
     public static final Color TEXT_PRIMARY = new Color(33, 33, 33);      // Dark gray
     public static final Color TEXT_SECONDARY = new Color(117, 117, 117); // Medium gray
+    public static final Color TEXT_DISABLED = new Color(180, 180, 180);  // Light gray
+    
+    // Seat colors
+    public static final Color REGULAR_SEAT_COLOR = new Color(63, 81, 181);   // Indigo
+    public static final Color PREMIUM_SEAT_COLOR = new Color(0, 150, 136);   // Teal
+    public static final Color VIP_SEAT_COLOR = new Color(213, 0, 0);         // Crimson
+    public static final Color DISABLED_COLOR = new Color(189, 189, 189);     // Light gray
+    public static final Color SELECTED_COLOR = new Color(255, 64, 129);      // Pink
+    
+    // Additional colors
+    public static final Color SECONDARY_COLOR = new Color(0, 150, 136);      // Teal
+    public static final Color HEADER_COLOR = new Color(33, 33, 33);          // Dark gray
+    public static final Color BORDER_COLOR = new Color(224, 224, 224);       // Light gray
     
     // Font settings
     public static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 24);
+    public static final Font HEADER_FONT = new Font("SansSerif", Font.BOLD, 20);
+    public static final Font SUBHEADER_FONT = new Font("SansSerif", Font.BOLD, 16);
     public static final Font SUBTITLE_FONT = new Font("SansSerif", Font.BOLD, 18);
     public static final Font BODY_FONT = new Font("SansSerif", Font.PLAIN, 14);
     public static final Font BUTTON_FONT = new Font("SansSerif", Font.BOLD, 14);
