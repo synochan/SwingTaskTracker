@@ -1,0 +1,97 @@
+You are a full-stack Java developer tasked with building a fully functional Java Swing desktop application called CineBook CDO, an online movie ticket booking system for cinemas in Cagayan de Oro (CDO), Philippines.
+
+Project Scope:
+This Swing-based application should include:
+
+Real-time movie schedule browsing for 3 cinemas.
+
+Seat reservation with an interactive selection UI.
+
+Secure payment simulation (support for GCash, PayMaya, and credit cards).
+
+E-ticket generation sent via email or SMS (simulate this).
+
+Admin portal for schedule editing, sales reporting, and user management.
+
+Dynamic pricing for Standard and Deluxe seats.
+
+Concession add-ons (popcorn, drinks) at checkout.
+
+Backend & Database Requirements:
+Use Java + Swing for the frontend UI.
+
+Use JDBC with a MySQL or SQLite database for:
+
+User records
+
+Movie listings
+
+Screening schedules
+
+Reservations
+
+Payments
+
+Admin logs and reports
+
+Include DAO (Data Access Object) design pattern to handle all database operations.
+
+Functional Requirements:
+User Side:
+
+Account creation and guest checkout.
+
+Browse and filter movie listings by date, time, cinema.
+
+Select number and type of seats (max 6 per transaction).
+
+Add optional concession items.
+
+Choose payment method (simulate transaction and validate).
+
+Generate a digital ticket with QR code (optional) and confirmation.
+
+Admin Side:
+
+Login and access admin dashboard.
+
+Edit movie screenings and seat availability.
+
+View and export sales reports (daily, weekly, monthly).
+
+Manage registered users.
+
+Bulk ticket printing simulation.
+
+Technologies to use:
+Java Swing for the GUI
+
+JDBC with MySQL or SQLite
+
+Email/SMS simulation via JavaMail API or console output
+
+CSV or PDF exports for reporting (optional)
+
+Folder structure should follow MVC (Model-View-Controller) principles
+
+Project Requirements:
+Include proper folder structure: /src, /db, /assets, /docs
+
+A sample .sql file to initialize the database schema and seed data.
+
+Include a README.txt or Instructions.txt file with:
+
+How to compile and run the project
+
+Required dependencies (JARs, DB setup, etc.)
+
+Any simulation explanations (e.g., payment, email)
+
+Future-Proofing:
+Please also modularize the code so that future features can be integrated easily:
+
+QR Code scanner for ticket entry (future)
+
+Promo codes, AR seat preview, and auction logic (future)
+
+Generate Java source code, SQL schema, and comments for clarity.
