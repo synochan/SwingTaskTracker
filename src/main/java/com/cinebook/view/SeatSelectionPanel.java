@@ -15,7 +15,10 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,11 +140,28 @@ public class SeatSelectionPanel extends JPanel {
         
         centerPanel.add(screenPanel, BorderLayout.NORTH);
         
-        // Seat map panel
-        seatMapPanel = new JPanel();
+        // Seat map panel with adaptive sizing and no scrolling
+        seatMapPanel = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                if (isVisible()) {
+                    // Get the parent container size
+                    Container parent = getParent();
+                    if (parent != null) {
+                        Insets insets = parent.getInsets();
+                        int width = parent.getWidth() - insets.left - insets.right - 20;
+                        int height = parent.getHeight() - insets.top - insets.bottom - 20;
+                        return new Dimension(width, height);
+                    }
+                }
+                return super.getPreferredSize();
+            }
+        };
         seatMapPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
-        JScrollPane scrollPane = new JScrollPane(seatMapPanel);
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        seatMapPanel.setBackground(UIStyle.BACKGROUND_COLOR);
+        
+        // Add directly to center panel for full-screen layout
+        centerPanel.add(seatMapPanel, BorderLayout.CENTER);
         
         // Legend panel with modern styling
         legendPanel = new JPanel();
@@ -475,17 +495,22 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
-     * Loads and displays the seat map for the current screening.
+     * Loads and displays the seat map for the current screening with modern responsive design.
      */
     private void loadSeatMap() {
         // Clear existing seat map
         seatMapPanel.removeAll();
+        seatMapPanel.setLayout(new BorderLayout());
         
         if (currentScreening != null) {
             List<Seat> seats = screeningController.getSeatsByScreening(currentScreening.getId());
             
             if (seats.isEmpty()) {
-                seatMapPanel.add(new JLabel("No seats available for this screening."));
+                JLabel noSeatsLabel = new JLabel("No seats available for this screening.");
+                noSeatsLabel.setFont(UIStyle.SUBTITLE_FONT);
+                noSeatsLabel.setForeground(UIStyle.TEXT_PRIMARY);
+                noSeatsLabel.setHorizontalAlignment(JLabel.CENTER);
+                seatMapPanel.add(noSeatsLabel, BorderLayout.CENTER);
             } else {
                 // Get cinema dimensions
                 int totalRows = 0;
@@ -500,16 +525,39 @@ public class SeatSelectionPanel extends JPanel {
                     }
                 }
                 
-                // Create grid layout for seat map
-                seatMapPanel.setLayout(new GridLayout(totalRows + 1, seatsPerRow + 1, 5, 5));
+                // Calculate adaptive size for seats
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                int maxWidth = (int)(screenSize.width * 0.8); // Use 80% of screen width as reference
+                int maxHeight = (int)(screenSize.height * 0.6); // Use 60% of screen height as reference
                 
-                // Add row labels and empty top-left corner
-                seatMapPanel.add(new JLabel()); // Empty top-left corner
+                int optimalSeatSize = Math.min(
+                    maxWidth / (seatsPerRow + 2), 
+                    maxHeight / (totalRows + 2)
+                );
+                // Cap seat size between reasonable limits
+                int seatSize = Math.max(30, Math.min(optimalSeatSize, 50));
                 
-                // Add column numbers
+                // Main panel for seat map with sized gap
+                JPanel seatsContainer = new JPanel(new GridBagLayout());
+                seatsContainer.setBackground(UIStyle.BACKGROUND_COLOR);
+                
+                GridBagConstraints gbc = new GridBagConstraints();
+                gbc.insets = new Insets(2, 2, 2, 2); // Small gap between seats
+                
+                // Add empty top-left corner
+                gbc.gridx = 0;
+                gbc.gridy = 0;
+                seatsContainer.add(new JLabel(), gbc);
+                
+                // Add column headers with styling
                 for (int col = 1; col <= seatsPerRow; col++) {
+                    gbc.gridx = col;
+                    gbc.gridy = 0;
                     JLabel colLabel = new JLabel(String.valueOf(col), JLabel.CENTER);
-                    seatMapPanel.add(colLabel);
+                    colLabel.setFont(UIStyle.BODY_FONT);
+                    colLabel.setForeground(UIStyle.TEXT_PRIMARY);
+                    colLabel.setPreferredSize(new Dimension(seatSize, 20));
+                    seatsContainer.add(colLabel, gbc);
                 }
                 
                 // Create a 2D array to store seats by position
@@ -520,31 +568,82 @@ public class SeatSelectionPanel extends JPanel {
                 
                 // Add rows with row labels and seat buttons
                 for (int row = 1; row <= totalRows; row++) {
-                    // Add row label
+                    // Add row label with styling
+                    gbc.gridx = 0;
+                    gbc.gridy = row;
                     JLabel rowLabel = new JLabel(getRowLabel(row), JLabel.CENTER);
-                    seatMapPanel.add(rowLabel);
+                    rowLabel.setFont(UIStyle.BODY_FONT);
+                    rowLabel.setForeground(UIStyle.TEXT_PRIMARY);
+                    rowLabel.setPreferredSize(new Dimension(20, seatSize));
+                    seatsContainer.add(rowLabel, gbc);
                     
                     // Add seats for this row
                     for (int col = 1; col <= seatsPerRow; col++) {
                         Seat seat = seatGrid[row][col];
+                        gbc.gridx = col;
                         
                         if (seat != null) {
-                            SeatButton seatButton = new SeatButton(seat);
+                            // Create modernized seat button
+                            final SeatButton seatButton = new SeatButton(seat);
+                            seatButton.setPreferredSize(new Dimension(seatSize, seatSize));
+                            
+                            // Add hover effect for better user experience
+                            seatButton.addMouseListener(new MouseAdapter() {
+                                @Override
+                                public void mouseEntered(MouseEvent e) {
+                                    if (!seatButton.getSeat().isReserved()) {
+                                        seatButton.setBorder(BorderFactory.createLineBorder(UIStyle.ACCENT_COLOR, 2));
+                                    }
+                                }
+                                
+                                @Override
+                                public void mouseExited(MouseEvent e) {
+                                    seatButton.setBorder(null);
+                                }
+                            });
+                            
                             seatButton.addActionListener(new SeatButtonListener(seatButton));
                             seatButtons.add(seatButton);
-                            seatMapPanel.add(seatButton);
+                            seatsContainer.add(seatButton, gbc);
                         } else {
-                            // Add empty space if no seat
-                            seatMapPanel.add(new JLabel());
+                            // Add empty space where there is no seat
+                            JPanel emptySpace = new JPanel();
+                            emptySpace.setPreferredSize(new Dimension(seatSize, seatSize));
+                            emptySpace.setOpaque(false);
+                            seatsContainer.add(emptySpace, gbc);
                         }
                     }
                 }
+                
+                // Create a container with padding for better appearance
+                JPanel paddedContainer = new JPanel(new BorderLayout());
+                paddedContainer.setBackground(UIStyle.BACKGROUND_COLOR);
+                paddedContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                paddedContainer.add(seatsContainer, BorderLayout.CENTER);
+                
+                // Add the seats to a scroll pane (scrollbars appear only if needed)
+                JScrollPane scrollPane = new JScrollPane(
+                    paddedContainer,
+                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+                );
+                scrollPane.setBorder(null);
+                scrollPane.getViewport().setBackground(UIStyle.BACKGROUND_COLOR);
+                
+                // Modern scrollbar appearance
+                scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+                scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+                
+                seatMapPanel.add(scrollPane, BorderLayout.CENTER);
             }
         } else {
-            seatMapPanel.add(new JLabel("No screening selected."));
+            JLabel noScreeningLabel = new JLabel("No screening selected.");
+            noScreeningLabel.setFont(UIStyle.SUBTITLE_FONT);
+            noScreeningLabel.setForeground(UIStyle.TEXT_PRIMARY);
+            noScreeningLabel.setHorizontalAlignment(JLabel.CENTER);
+            seatMapPanel.add(noScreeningLabel, BorderLayout.CENTER);
         }
         
-        // Update the UI
         seatMapPanel.revalidate();
         seatMapPanel.repaint();
     }
@@ -611,10 +710,11 @@ public class SeatSelectionPanel extends JPanel {
         private Seat seat;
         private boolean selected;
         private static final int BUTTON_SIZE = 40;
-        private static final int CORNER_RADIUS = 8;
+        private static final int CORNER_RADIUS = 10;
+        private boolean isHovered = false;
         
         /**
-         * Constructor for SeatButton.
+         * Constructor for SeatButton with modern styling.
          *
          * @param seat The seat this button represents
          */
@@ -627,9 +727,27 @@ public class SeatSelectionPanel extends JPanel {
             setFocusPainted(false);
             setContentAreaFilled(false); // We'll do custom painting
             setOpaque(false);
+            setBorderPainted(false);
             setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
-            setFont(new Font("SansSerif", Font.BOLD, 11));
+            setFont(UIStyle.BODY_FONT.deriveFont(Font.BOLD, 11f));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Add hover effects
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    if (!seat.isReserved()) {
+                        isHovered = true;
+                        repaint();
+                    }
+                }
+                
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
             
             updateAppearance();
         }
@@ -638,35 +756,75 @@ public class SeatSelectionPanel extends JPanel {
         protected void paintComponent(Graphics g) {
             Graphics2D g2d = (Graphics2D) g.create();
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             
-            // Draw button background
-            if (seat.isReserved()) {
-                g2d.setColor(UIStyle.ERROR_COLOR);
-            } else if (selected) {
-                g2d.setColor(UIStyle.SUCCESS_COLOR);
-            } else if (seat.getSeatType() == SeatType.DELUXE) {
-                g2d.setColor(new Color(255, 182, 193)); // Light pink for deluxe
-            } else {
-                g2d.setColor(UIStyle.SURFACE_COLOR);
+            int width = getWidth() - 1;
+            int height = getHeight() - 1;
+            
+            // Create seat shape
+            RoundRectangle2D seatShape = new RoundRectangle2D.Double(0, 0, width, height, CORNER_RADIUS, CORNER_RADIUS);
+            
+            // Add bottom shadow for 3D effect
+            if (!seat.isReserved() && !selected) {
+                g2d.setColor(new Color(0, 0, 0, 30));
+                g2d.fill(new RoundRectangle2D.Double(2, 2, width - 4, height - 2, CORNER_RADIUS, CORNER_RADIUS));
             }
             
-            // Draw rounded rectangle for seat
-            g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS);
+            // Fill with appropriate color
+            if (seat.isReserved()) {
+                // Reserved seats
+                g2d.setColor(UIStyle.ERROR_COLOR);
+            } else if (selected) {
+                // Selected seats
+                g2d.setColor(UIStyle.ACCENT_COLOR);
+            } else if (seat.getSeatType() == SeatType.DELUXE) {
+                // Deluxe seats - use more appealing gradient
+                GradientPaint gradient = new GradientPaint(
+                    0, 0,
+                    new Color(255, 150, 150),
+                    0, height,
+                    new Color(255, 100, 100)
+                );
+                g2d.setPaint(gradient);
+            } else {
+                // Standard seats - with gradient
+                Color baseColor = isHovered ? UIStyle.PRIMARY_LIGHT : UIStyle.SURFACE_COLOR;
+                GradientPaint gradient = new GradientPaint(
+                    0, 0,
+                    baseColor,
+                    0, height,
+                    UIStyle.darkenColor(baseColor, 0.1f)
+                );
+                g2d.setPaint(gradient);
+            }
             
-            // Draw border
+            g2d.fill(seatShape);
+            
+            // Draw border with slight glow effect if hovered
+            if (isHovered && !seat.isReserved() && !selected) {
+                // Glow effect
+                g2d.setColor(new Color(UIStyle.ACCENT_COLOR.getRed(), 
+                                       UIStyle.ACCENT_COLOR.getGreen(), 
+                                       UIStyle.ACCENT_COLOR.getBlue(), 100));
+                g2d.setStroke(new BasicStroke(3f));
+                g2d.draw(seatShape);
+            }
+            
+            // Standard border
             if (!seat.isReserved()) {
-                g2d.setColor(UIStyle.PRIMARY_COLOR);
-                g2d.setStroke(new BasicStroke(1.5f));
-                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS);
+                g2d.setColor(selected ? UIStyle.darkenColor(UIStyle.ACCENT_COLOR, 0.2f) : UIStyle.PRIMARY_COLOR);
+                g2d.setStroke(new BasicStroke(1.2f));
+                g2d.draw(seatShape);
             }
             
             // Draw text
             FontMetrics fm = g2d.getFontMetrics();
             Rectangle2D rect = fm.getStringBounds(getText(), g2d);
             
-            int textX = (getWidth() - (int) rect.getWidth()) / 2;
-            int textY = (getHeight() - (int) rect.getHeight()) / 2 + fm.getAscent();
+            int textX = (int)((width - rect.getWidth()) / 2);
+            int textY = (int)((height - rect.getHeight()) / 2 + fm.getAscent());
             
+            // Text color based on seat state
             if (seat.isReserved() || selected) {
                 g2d.setColor(Color.WHITE);
             } else {
@@ -674,6 +832,16 @@ public class SeatSelectionPanel extends JPanel {
             }
             
             g2d.drawString(getText(), textX, textY);
+            
+            // If reserved, draw X
+            if (seat.isReserved()) {
+                g2d.setColor(new Color(255, 255, 255, 180));
+                g2d.setStroke(new BasicStroke(1.5f));
+                int margin = 10;
+                g2d.drawLine(margin, margin, width - margin, height - margin);
+                g2d.drawLine(width - margin, margin, margin, height - margin);
+            }
+            
             g2d.dispose();
         }
         

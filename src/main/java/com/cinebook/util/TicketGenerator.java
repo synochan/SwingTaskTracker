@@ -12,6 +12,7 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -159,7 +160,8 @@ public class TicketGenerator implements Printable {
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
         SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
-        Date screeningDate = screening.getDateTime();
+        LocalDateTime screeningTime = screening.getScreeningTime();
+        Date screeningDate = java.sql.Timestamp.valueOf(screeningTime);
         
         // Draw movie info
         g2d.setFont(SUBTITLE_FONT);
@@ -173,7 +175,7 @@ public class TicketGenerator implements Printable {
         // Draw seat info
         StringBuilder seatInfo = new StringBuilder("Seats: ");
         for (int i = 0; i < seats.size(); i++) {
-            seatInfo.append(seats.get(i).getSeatCode());
+            seatInfo.append(seats.get(i).getSeatNumber());
             if (i < seats.size() - 1) {
                 seatInfo.append(", ");
             }
@@ -182,7 +184,7 @@ public class TicketGenerator implements Printable {
         
         // Draw price and ticket number
         g2d.drawString("Total Price: ₱" + String.format("%.2f", totalPrice), 20, 175);
-        g2d.drawString("Ticket #: " + reservation.getReservationId(), 20, 195);
+        g2d.drawString("Ticket #: " + reservation.getId(), 20, 195);
         g2d.drawString("Issued: " + dateFormat.format(new Date()) + " " + timeFormat.format(new Date()), 20, 215);
         
         // Draw QR code

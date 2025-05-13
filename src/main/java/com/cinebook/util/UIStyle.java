@@ -132,4 +132,42 @@ public class UIStyle {
         
         return panel;
     }
+    
+    /**
+     * Darkens a color by the specified factor.
+     *
+     * @param color The color to darken
+     * @param factor The darkening factor (0.0 to 1.0)
+     * @return The darkened color
+     */
+    public static Color darkenColor(Color color, float factor) {
+        if (factor < 0 || factor > 1) {
+            throw new IllegalArgumentException("Factor must be between 0.0 and 1.0");
+        }
+        
+        int r = Math.max(0, (int)(color.getRed() * (1 - factor)));
+        int g = Math.max(0, (int)(color.getGreen() * (1 - factor)));
+        int b = Math.max(0, (int)(color.getBlue() * (1 - factor)));
+        
+        return new Color(r, g, b, color.getAlpha());
+    }
+    
+    /**
+     * Lightens a color by the specified factor.
+     *
+     * @param color The color to lighten
+     * @param factor The lightening factor (0.0 to 1.0)
+     * @return The lightened color
+     */
+    public static Color lightenColor(Color color, float factor) {
+        if (factor < 0 || factor > 1) {
+            throw new IllegalArgumentException("Factor must be between 0.0 and 1.0");
+        }
+        
+        int r = Math.min(255, (int)(color.getRed() + (255 - color.getRed()) * factor));
+        int g = Math.min(255, (int)(color.getGreen() + (255 - color.getGreen()) * factor));
+        int b = Math.min(255, (int)(color.getBlue() + (255 - color.getBlue()) * factor));
+        
+        return new Color(r, g, b, color.getAlpha());
+    }
 }

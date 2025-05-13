@@ -14,6 +14,7 @@ import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -155,14 +156,15 @@ public class ReceiptGenerator implements Printable {
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
         SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a");
-        Date screeningDate = screening.getDateTime();
+        LocalDateTime screeningTime = screening.getScreeningTime();
+        Date screeningDate = java.sql.Timestamp.valueOf(screeningTime);
         Date currentDate = new Date();
         
         // Draw current date and receipt number
         g2d.setColor(TEXT_COLOR);
         g2d.setFont(BODY_FONT);
         g2d.drawString("Date: " + dateFormat.format(currentDate) + " " + timeFormat.format(currentDate), 20, 70);
-        g2d.drawString("Receipt #: " + payment.getPaymentId(), 20, 85);
+        g2d.drawString("Receipt #: " + payment.getId(), 20, 85);
         
         // Draw divider
         g2d.setColor(RECEIPT_BORDER);
@@ -183,7 +185,7 @@ public class ReceiptGenerator implements Printable {
         // Draw seat info
         StringBuilder seatInfo = new StringBuilder("Seats: ");
         for (int i = 0; i < seats.size(); i++) {
-            seatInfo.append(seats.get(i).getSeatCode());
+            seatInfo.append(seats.get(i).getSeatNumber());
             if (i < seats.size() - 1) {
                 seatInfo.append(", ");
             }
