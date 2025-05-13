@@ -154,10 +154,23 @@ public class ReservationController {
                 Screening screening = screeningDAO.getScreeningById(currentReservation.getScreeningId());
                 currentReservation.calculateTotalAmount(screening);
                 
-                // Mark seats as temporarily reserved to prevent conflicts
-                // This sets them as reserved in memory, but doesn't commit to the database yet
+                // Mark seats as temporarily reserved in the database to prevent conflicts
+                List<Integer> seatIds = new ArrayList<>();
                 for (Seat seat : allSeats) {
-                    seat.setReserved(true);
+                    seat.setReserved(true);  // Set in memory
+                    seatIds.add(seat.getId());
+                }
+                
+                // Now actually reserve the seats in the database
+                if (!seatIds.isEmpty()) {
+                    boolean reserved = seatDAO.updateMultipleSeatReservations(seatIds, true);
+                    if (!reserved) {
+                        // If database update failed, revert the in-memory state
+                        for (Seat seat : allSeats) {
+                            seat.setReserved(false);
+                        }
+                        return false;
+                    }
                 }
             }
             
@@ -219,30 +232,17 @@ public class ReservationController {
                 // Set the reservation time to now
                 currentReservation.setReservationTime(LocalDateTime.now());
                 
-                // Double-check that seats are still available
+                // Seats have already been reserved in the database during addSeatsToReservation,
+                // so we just need to verify they're still in our reservation
+                
                 List<Integer> seatIds = new ArrayList<>();
                 for (Seat seat : currentReservation.getSelectedSeats()) {
                     seatIds.add(seat.getId());
                 }
                 
-                boolean allAvailable = true;
-                for (int seatId : seatIds) {
-                    Seat seat = seatDAO.getSeatById(seatId);
-                    if (seat.isReserved()) {
-                        // Someone else has reserved this seat
-                        allAvailable = false;
-                        break;
-                    }
-                }
-                
-                if (!allAvailable) {
-                    // Return error, the seats are no longer available
+                if (seatIds.isEmpty()) {
+                    // This shouldn't happen, but we check just in case
                     return -1;
-                }
-                
-                // Set temporary hold on seats in the database
-                if (!seatDAO.updateMultipleSeatReservations(seatIds, true)) {
-                    return -1; // Failed to reserve seats
                 }
                 
                 // Save the reservation to the database with seats now marked as reserved
