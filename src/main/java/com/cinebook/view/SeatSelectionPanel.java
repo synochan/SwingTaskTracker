@@ -12,6 +12,7 @@ import com.cinebook.util.UIStyle;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -68,147 +69,497 @@ public class SeatSelectionPanel extends JPanel {
         this.selectedSeatIds = new ArrayList<>();
         
         // Setup panel properties
-        setLayout(new BorderLayout());
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setLayout(new BorderLayout(0, 0));
+        setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        setBackground(UIStyle.BACKGROUND_COLOR);
         
-        // Create and add components
-        createTopPanel();
-        createSeatMapPanel();
-        createBottomPanel();
+        // Create the two main panels - seat map and sidebar
+        createPanels();
     }
     
     /**
-     * Creates the top panel with movie and screening information.
+     * Creates all panel components with the new side-by-side layout
      */
-    private void createTopPanel() {
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    private void createPanels() {
+        // MAIN CONTAINER - split into seat area and sidebar
+        JPanel mainContainer = new JPanel(new BorderLayout(0, 0));
+        mainContainer.setBackground(UIStyle.BACKGROUND_COLOR);
         
-        // Title
-        JLabel pageTitle = new JLabel("Select Your Seats", JLabel.CENTER);
-        pageTitle.setFont(new Font("Serif", Font.BOLD, 24));
-        topPanel.add(pageTitle, BorderLayout.NORTH);
+        // 1. LEFT AREA (80% width) - SEAT MAP
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 0));
+        leftPanel.setBackground(UIStyle.BACKGROUND_COLOR);
         
-        // Movie and screening info
-        infoPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-        infoPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder("Screening Information"),
-            new EmptyBorder(5, 5, 5, 5)));
+        // Create title at top
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(UIStyle.PRIMARY_COLOR);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
         
-        movieLabel = new JLabel("Movie: ");
-        cinemaLabel = new JLabel("Cinema: ");
-        dateTimeLabel = new JLabel("Date & Time: ");
+        JLabel titleLabel = new JLabel("Select Your Seats", JLabel.LEFT);
+        titleLabel.setFont(UIStyle.TITLE_FONT);
+        titleLabel.setForeground(Color.WHITE);
+        titlePanel.add(titleLabel, BorderLayout.WEST);
         
-        infoPanel.add(movieLabel);
-        infoPanel.add(cinemaLabel);
-        infoPanel.add(dateTimeLabel);
+        // Create seat map area with screen at top
+        JPanel seatArea = new JPanel(new BorderLayout(0, 0));
+        seatArea.setBackground(UIStyle.BACKGROUND_COLOR);
+        seatArea.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 0));
         
-        topPanel.add(infoPanel, BorderLayout.CENTER);
-        
-        add(topPanel, BorderLayout.NORTH);
-    }
-    
-    /**
-     * Creates the seat map panel.
-     */
-    private void createSeatMapPanel() {
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        
-        // Screen label with modern styling
+        // Screen panel
         JPanel screenPanel = new JPanel(new BorderLayout());
-        screenPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
         screenPanel.setBackground(UIStyle.BACKGROUND_COLOR);
+        screenPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 25, 0));
         
         screenLabel = new JLabel("SCREEN", JLabel.CENTER);
         screenLabel.setOpaque(true);
         screenLabel.setBackground(UIStyle.PRIMARY_DARK);
         screenLabel.setForeground(Color.WHITE);
-        screenLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-        screenLabel.setPreferredSize(new Dimension(0, 40));
+        screenLabel.setFont(UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD));
         screenLabel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(UIStyle.PRIMARY_COLOR, 2),
-            BorderFactory.createEmptyBorder(8, 0, 8, 0)
+            BorderFactory.createEmptyBorder(10, 0, 10, 0)
         ));
         
-        // Add a subtle shadow effect
-        JPanel shadowPanel = new JPanel();
-        shadowPanel.setBackground(UIStyle.PRIMARY_LIGHT);
-        shadowPanel.setPreferredSize(new Dimension(0, 4));
-        
-        screenPanel.add(screenLabel, BorderLayout.NORTH);
-        screenPanel.add(shadowPanel, BorderLayout.CENTER);
-        
-        centerPanel.add(screenPanel, BorderLayout.NORTH);
-        
-        // Seat map panel with adaptive sizing and no scrolling
-        seatMapPanel = new JPanel() {
+        // Screen shadow for 3D effect
+        JPanel shadowPanel = new JPanel() {
             @Override
-            public Dimension getPreferredSize() {
-                if (isVisible()) {
-                    // Get the parent container size
-                    Container parent = getParent();
-                    if (parent != null) {
-                        Insets insets = parent.getInsets();
-                        int width = parent.getWidth() - insets.left - insets.right - 20;
-                        int height = parent.getHeight() - insets.top - insets.bottom - 20;
-                        return new Dimension(width, height);
-                    }
-                }
-                return super.getPreferredSize();
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                
+                // Creating a gradient from dark to transparent
+                GradientPaint gradient = new GradientPaint(
+                    0, 0, new Color(0, 0, 0, 60),
+                    0, getHeight(), new Color(0, 0, 0, 0)
+                );
+                
+                g2d.setPaint(gradient);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
             }
         };
-        seatMapPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10));
+        shadowPanel.setOpaque(false);
+        shadowPanel.setPreferredSize(new Dimension(0, 15));
+        
+        screenPanel.add(screenLabel, BorderLayout.CENTER);
+        screenPanel.add(shadowPanel, BorderLayout.SOUTH);
+        
+        // Seat map panel - this is where seats will be displayed
+        seatMapPanel = new JPanel();
         seatMapPanel.setBackground(UIStyle.BACKGROUND_COLOR);
         
-        // Add directly to center panel for full-screen layout
-        centerPanel.add(seatMapPanel, BorderLayout.CENTER);
+        // Add screen and seat map to the seat area
+        seatArea.add(screenPanel, BorderLayout.NORTH);
+        seatArea.add(seatMapPanel, BorderLayout.CENTER);
         
-        // Legend panel with modern styling
-        legendPanel = new JPanel();
-        legendPanel.setBackground(UIStyle.SURFACE_COLOR);
+        // Add title and seat area to left panel
+        leftPanel.add(titlePanel, BorderLayout.NORTH);
+        leftPanel.add(seatArea, BorderLayout.CENTER);
         
-        // Create a stylish title
-        JLabel titleLabel = new JLabel("Legend");
-        titleLabel.setFont(UIStyle.SUBTITLE_FONT);
-        titleLabel.setForeground(UIStyle.TEXT_PRIMARY);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        
-        // Create a panel for legend items with grid layout
-        JPanel itemsPanel = new JPanel(new GridLayout(0, 3, 15, 8));
-        itemsPanel.setBackground(UIStyle.SURFACE_COLOR);
-        
-        // Create legend items with improved colors
-        JPanel availablePanel = createLegendItem("Available", Color.WHITE);
-        JPanel selectedPanel = createLegendItem("Selected", UIStyle.ACCENT_COLOR);
-        JPanel reservedPanel = createLegendItem("Reserved", UIStyle.ERROR_COLOR);
-        JPanel standardPanel = createLegendItem("Standard (₱" + 
-            (currentScreening != null ? String.format("%.2f", currentScreening.getStandardSeatPrice()) : "0.00") + 
-            ")", Color.WHITE);
-        JPanel deluxePanel = createLegendItem("Deluxe (₱" + 
-            (currentScreening != null ? String.format("%.2f", currentScreening.getDeluxeSeatPrice()) : "0.00") + 
-            ")", new Color(255, 220, 220)); // Light pink for deluxe
-        
-        itemsPanel.add(availablePanel);
-        itemsPanel.add(selectedPanel);
-        itemsPanel.add(reservedPanel);
-        itemsPanel.add(standardPanel);
-        itemsPanel.add(deluxePanel);
-        
-        // Main panel with title and items
-        legendPanel.setLayout(new BorderLayout());
-        legendPanel.add(titleLabel, BorderLayout.NORTH);
-        legendPanel.add(itemsPanel, BorderLayout.CENTER);
-        
-        // Add stylish border
-        legendPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1),
+        // 2. RIGHT SIDEBAR (20% width) - INFO AND CONTROLS
+
+        JPanel rightPanel = new JPanel();
+        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setBackground(UIStyle.SURFACE_COLOR);
+        rightPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 1, 0, 0, UIStyle.PRIMARY_LIGHT),
             BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
         
-        centerPanel.add(legendPanel, BorderLayout.SOUTH);
+        // Fixed width for sidebar
+        rightPanel.setPreferredSize(new Dimension(280, 0));
         
-        add(centerPanel, BorderLayout.CENTER);
+        // 2.1 Screening info panel
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+        infoPanel.setBackground(UIStyle.SURFACE_COLOR);
+        infoPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT),
+                "Screening Information", 
+                TitledBorder.LEFT, 
+                TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD, 14),
+                UIStyle.PRIMARY_COLOR
+            ),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        infoPanel.setMaximumSize(new Dimension(280, 120));
+        
+        movieLabel = new JLabel("Movie: ");
+        cinemaLabel = new JLabel("Cinema: ");
+        dateTimeLabel = new JLabel("Date & Time: ");
+        
+        movieLabel.setFont(UIStyle.BODY_FONT);
+        cinemaLabel.setFont(UIStyle.BODY_FONT);
+        dateTimeLabel.setFont(UIStyle.BODY_FONT);
+        
+        infoPanel.add(movieLabel);
+        infoPanel.add(cinemaLabel);
+        infoPanel.add(dateTimeLabel);
+        
+        // 2.2 Selection summary panel
+        JPanel selectionPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        selectionPanel.setBackground(UIStyle.SURFACE_COLOR);
+        selectionPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT),
+                "Your Selection", 
+                TitledBorder.LEFT, 
+                TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD, 14),
+                UIStyle.PRIMARY_COLOR
+            ),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        selectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        selectionPanel.setMaximumSize(new Dimension(280, 90));
+        
+        selectedSeatsLabel = new JLabel("Selected Seats: None");
+        totalPriceLabel = new JLabel("Total Price: ₱0.00");
+        
+        selectedSeatsLabel.setFont(UIStyle.BODY_FONT);
+        totalPriceLabel.setFont(UIStyle.BODY_FONT.deriveFont(Font.BOLD));
+        
+        selectionPanel.add(selectedSeatsLabel);
+        selectionPanel.add(totalPriceLabel);
+        
+        // 2.3 Legend panel
+        legendPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+        legendPanel.setBackground(UIStyle.SURFACE_COLOR);
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT),
+                "Legend", 
+                TitledBorder.LEFT, 
+                TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD, 14),
+                UIStyle.PRIMARY_COLOR
+            ),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        legendPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        legendPanel.setMaximumSize(new Dimension(280, 180));
+        
+        // 2.4 AR Preview button
+        arPreviewButton = new JButton("AR Seat Preview");
+        // Don't use icon as it might not exist
+        arPreviewButton.setEnabled(false);
+        arPreviewButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        arPreviewButton.setMaximumSize(new Dimension(280, 40));
+        UIStyle.styleButton(arPreviewButton, false);
+        
+        arPreviewButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showARPreview();
+            }
+        });
+        
+        // 2.5 Action buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
+        buttonPanel.setBackground(UIStyle.SURFACE_COLOR);
+        buttonPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        buttonPanel.setMaximumSize(new Dimension(280, 50));
+        
+        continueButton = new JButton("Continue");
+        continueButton.setEnabled(false);
+        
+        cancelButton = new JButton("Cancel");
+        
+        UIStyle.styleButton(continueButton, true);
+        UIStyle.styleButton(cancelButton, false);
+        
+        // Add action listeners
+        continueButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!selectedSeatIds.isEmpty()) {
+                    boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
+                    
+                    if (success) {
+                        mainFrame.getConcessionPanel().initialize();
+                        mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
+                    } else {
+                        DialogManager.showErrorDialog(
+                            mainFrame,
+                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
+                            "Reservation Error"
+                        );
+                        
+                        refreshSeatMap();
+                    }
+                }
+            }
+        });
+        
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int response = JOptionPane.showConfirmDialog(
+                    mainFrame,
+                    "Are you sure you want to cancel this reservation?",
+                    "Confirm Cancellation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    reservationController.cancelReservationProcess();
+                    mainFrame.navigateTo(MainFrame.MOVIE_LISTING_PANEL);
+                }
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(continueButton);
+        
+        // Add all components to the right panel with spacing
+        rightPanel.add(infoPanel);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        rightPanel.add(selectionPanel);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        rightPanel.add(legendPanel);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        rightPanel.add(arPreviewButton);
+        rightPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        rightPanel.add(buttonPanel);
+        rightPanel.add(Box.createVerticalGlue());
+        
+        // Add left and right panels to main container
+        mainContainer.add(leftPanel, BorderLayout.CENTER);
+        mainContainer.add(rightPanel, BorderLayout.EAST);
+        
+        // Add main container to this panel
+        add(mainContainer, BorderLayout.CENTER);
+    }
+    
+    /**
+     * Creates a modern title panel for the seat selection screen.
+     *
+     * @return The created title panel
+     */
+    private JPanel createTitlePanel() {
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(UIStyle.PRIMARY_COLOR);
+        titlePanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        
+        // Modern title with icon
+        JLabel pageTitle = new JLabel("Select Your Seats", JLabel.CENTER);
+        pageTitle.setFont(UIStyle.TITLE_FONT);
+        pageTitle.setForeground(Color.WHITE);
+        // Use the SVG icon we created
+        try {
+            ImageIcon icon = new ImageIcon(new File("resources/icons/seat_selection.svg").getAbsolutePath());
+            pageTitle.setIcon(icon);
+        } catch (Exception e) {
+            System.err.println("Seat selection icon not found: " + e.getMessage());
+        }
+        pageTitle.setIconTextGap(15);
+        pageTitle.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        
+        titlePanel.add(pageTitle, BorderLayout.CENTER);
+        
+        return titlePanel;
+    }
+    
+    /**
+     * Creates the side panel with all information and controls.
+     *
+     * @return The created side panel
+     */
+    private JPanel createSidePanel() {
+        // Create a container for all the side information
+        JPanel sidePanel = new JPanel();
+        sidePanel.setLayout(new BoxLayout(sidePanel, BoxLayout.Y_AXIS));
+        sidePanel.setBackground(UIStyle.SURFACE_COLOR);
+        sidePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1, true),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+        ));
+        sidePanel.setPreferredSize(new Dimension(300, 0));
+        
+        // Screening information panel
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 8, 8));
+        infoPanel.setBackground(UIStyle.SURFACE_COLOR);
+        infoPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1, true), 
+                "Screening Information", TitledBorder.LEFT, TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD), UIStyle.PRIMARY_COLOR),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Create info labels
+        movieLabel = new JLabel("Movie: ");
+        movieLabel.setFont(UIStyle.BODY_FONT);
+        
+        cinemaLabel = new JLabel("Cinema: ");
+        cinemaLabel.setFont(UIStyle.BODY_FONT);
+        
+        dateTimeLabel = new JLabel("Date & Time: ");
+        dateTimeLabel.setFont(UIStyle.BODY_FONT);
+        
+        infoPanel.add(movieLabel);
+        infoPanel.add(cinemaLabel);
+        infoPanel.add(dateTimeLabel);
+        
+        // Add to the side panel with some spacing
+        sidePanel.add(infoPanel);
+        sidePanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        // Seat selection summary
+        JPanel selectionPanel = new JPanel(new BorderLayout(0, 10));
+        selectionPanel.setBackground(UIStyle.SURFACE_COLOR);
+        selectionPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1, true), 
+                "Your Selection", TitledBorder.LEFT, TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD), UIStyle.PRIMARY_COLOR),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Selection info
+        JPanel summaryPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        summaryPanel.setBackground(UIStyle.SURFACE_COLOR);
+        
+        selectedSeatsLabel = new JLabel("Selected Seats: None");
+        selectedSeatsLabel.setFont(UIStyle.BODY_FONT);
+        
+        totalPriceLabel = new JLabel("Total Price: ₱0.00");
+        totalPriceLabel.setFont(UIStyle.BODY_FONT);
+        
+        summaryPanel.add(selectedSeatsLabel);
+        summaryPanel.add(totalPriceLabel);
+        
+        selectionPanel.add(summaryPanel, BorderLayout.CENTER);
+        
+        // AR Preview button
+        arPreviewButton = new JButton("AR Seat Preview");
+        // Use the SVG icon we created
+        try {
+            ImageIcon icon = new ImageIcon(new File("resources/icons/ar_view.svg").getAbsolutePath());
+            arPreviewButton.setIcon(icon);
+        } catch (Exception e) {
+            System.err.println("AR view icon not found: " + e.getMessage());
+        }
+        arPreviewButton.setEnabled(false);
+        UIStyle.styleButton(arPreviewButton, false);
+        
+        arPreviewButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showARPreview();
+            }
+        });
+        
+        JPanel previewButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        previewButtonPanel.setBackground(UIStyle.SURFACE_COLOR);
+        previewButtonPanel.add(arPreviewButton);
+        
+        selectionPanel.add(previewButtonPanel, BorderLayout.SOUTH);
+        
+        // Add to side panel
+        sidePanel.add(selectionPanel);
+        sidePanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        // Legend panel
+        legendPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+        legendPanel.setBackground(UIStyle.SURFACE_COLOR);
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1, true), 
+                "Legend", TitledBorder.LEFT, TitledBorder.TOP, 
+                UIStyle.SUBTITLE_FONT.deriveFont(Font.BOLD), UIStyle.PRIMARY_COLOR),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        
+        // Add to side panel
+        sidePanel.add(legendPanel);
+        sidePanel.add(Box.createRigidArea(new Dimension(0, 25)));
+        
+        // Action buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
+        buttonPanel.setBackground(UIStyle.SURFACE_COLOR);
+        
+        continueButton = new JButton("Continue");
+        // Use the SVG icon we created
+        try {
+            ImageIcon icon = new ImageIcon(new File("resources/icons/continue.svg").getAbsolutePath());
+            continueButton.setIcon(icon);
+        } catch (Exception e) {
+            System.err.println("Continue icon not found: " + e.getMessage());
+        }
+        continueButton.setEnabled(false);
+        
+        cancelButton = new JButton("Cancel");
+        // Use the SVG icon we created
+        try {
+            ImageIcon icon = new ImageIcon(new File("resources/icons/cancel.svg").getAbsolutePath());
+            cancelButton.setIcon(icon);
+        } catch (Exception e) {
+            System.err.println("Cancel icon not found: " + e.getMessage());
+        }
+        
+        // Apply modern styling to buttons
+        UIStyle.styleButton(continueButton, true);
+        UIStyle.styleButton(cancelButton, false);
+        
+        // Add button actions
+        continueButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!selectedSeatIds.isEmpty()) {
+                    boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
+                    
+                    if (success) {
+                        mainFrame.getConcessionPanel().initialize();
+                        mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
+                    } else {
+                        // Use the modern dialog manager for error display
+                        DialogManager.showErrorDialog(
+                            mainFrame,
+                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
+                            "Reservation Error"
+                        );
+                        
+                        // Refresh the seat map to show the latest seat statuses
+                        refreshSeatMap();
+                    }
+                }
+            }
+        });
+        
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int response = JOptionPane.showConfirmDialog(
+                    mainFrame,
+                    "Are you sure you want to cancel this reservation?",
+                    "Confirm Cancellation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                
+                if (response == JOptionPane.YES_OPTION) {
+                    reservationController.cancelReservationProcess();
+                    mainFrame.navigateTo(MainFrame.MOVIE_LISTING_PANEL);
+                }
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(continueButton);
+        
+        // Add button panel to side panel
+        sidePanel.add(buttonPanel);
+        
+        return sidePanel;
+    }
+    
+    /**
+     * @deprecated This method is no longer used. Seat map creation is now handled in createPanels().
+     */
+    @Deprecated
+    private void createSeatMapPanel() {
+        // This method is kept for compatibility but is no longer used
+        // Seat map creation is now handled in createPanels()
     }
     
     /**
@@ -282,7 +633,8 @@ public class SeatSelectionPanel extends JPanel {
         arPreviewButton = new JButton("AR Seat Preview");
         // Use our custom AR icon
         try {
-            arPreviewButton.setIcon(new ImageIcon(new File("resources/icons/ar_icon.svg").getAbsolutePath()));
+            ImageIcon icon = new ImageIcon(new File("resources/icons/ar_view.svg").getAbsolutePath());
+            arPreviewButton.setIcon(icon);
         } catch (Exception e) {
             // Use text only if icon is not available
             System.err.println("AR icon not found: " + e.getMessage());
