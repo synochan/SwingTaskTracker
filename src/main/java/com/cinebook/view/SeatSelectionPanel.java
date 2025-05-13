@@ -86,39 +86,89 @@ public class SeatSelectionPanel extends JPanel {
      * This is a consolidated method to avoid duplicate listeners.
      */
     private void handleContinueButtonAction() {
-        if (!selectedSeatIds.isEmpty()) {
-            System.out.println("Attempting to add seats to reservation: " + selectedSeatIds);
-            
-            // Guard against empty or null selected seat IDs
-            if (selectedSeatIds == null || selectedSeatIds.isEmpty()) {
-                System.err.println("ERROR: Selected seat IDs is empty or null");
-                DialogManager.showErrorDialog(
-                    mainFrame,
-                    "Please select at least one seat before continuing.",
-                    "No Seats Selected"
-                );
-                return;
+        System.out.println("Continue button clicked with selected seats: " + selectedSeatIds);
+        
+        if (selectedSeatIds != null && !selectedSeatIds.isEmpty()) {
+            // First check if we have a valid reservation initialized
+            if (reservationController.getCurrentReservation() == null) {
+                System.err.println("ERROR: No current reservation object exists");
+                
+                // Try to fix the issue by starting a new reservation
+                if (userController.getCurrentUser() != null) {
+                    int screeningId = currentScreening.getId();
+                    boolean started = reservationController.startReservationForUser(
+                        userController.getCurrentUser(), screeningId);
+                    
+                    if (!started) {
+                        DialogManager.showErrorDialog(
+                            mainFrame,
+                            "Unable to start a new reservation. Please try again or contact customer support.",
+                            "Reservation Error"
+                        );
+                        return;
+                    }
+                    System.out.println("Created new reservation for screening: " + screeningId);
+                } else {
+                    // Cannot proceed without user
+                    DialogManager.showErrorDialog(
+                        mainFrame,
+                        "Please log in or continue as guest before booking.",
+                        "Login Required"
+                    );
+                    return;
+                }
             }
             
+            System.out.println("Proceeding with reservation - adding seats: " + selectedSeatIds);
             boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
             System.out.println("Reservation success: " + success);
             
             if (success) {
+                // Successfully added seats, proceed to concessions
                 mainFrame.getConcessionPanel().initialize();
                 mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
             } else {
                 System.err.println("FAILED: Could not add seats to reservation");
-                // Use the modern dialog manager for error display
-                DialogManager.showErrorDialog(
-                    mainFrame,
-                    "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
-                    "Reservation Error"
-                );
+                
+                // Check if seats are actually reserved
+                boolean anyReserved = false;
+                try {
+                    for (int seatId : selectedSeatIds) {
+                        Seat seat = screeningController.getSeatsByScreening(currentScreening.getId())
+                            .stream()
+                            .filter(s -> s.getId() == seatId)
+                            .findFirst()
+                            .orElse(null);
+                            
+                        if (seat != null && seat.isReserved()) {
+                            anyReserved = true;
+                            System.out.println("Confirmed seat " + seatId + " is reserved");
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error checking seat reservation status: " + e.getMessage());
+                }
+                
+                if (anyReserved) {
+                    DialogManager.showErrorDialog(
+                        mainFrame,
+                        "One or more selected seats have been reserved by another user. Please select different seats.",
+                        "Seats Unavailable"
+                    );
+                } else {
+                    DialogManager.showErrorDialog(
+                        mainFrame,
+                        "There was an error processing your seat reservation. Please try again.",
+                        "Reservation Error"
+                    );
+                }
                 
                 // Refresh the seat map to show the latest seat statuses
                 refreshSeatMap();
             }
         } else {
+            System.out.println("No seats selected");
             DialogManager.showInfoDialog(
                 mainFrame,
                 "Please select at least one seat before continuing.",

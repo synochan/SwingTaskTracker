@@ -98,6 +98,13 @@ public class SeatDAO {
      * @throws SQLException If a database error occurs
      */
     public boolean updateMultipleSeatReservations(List<Integer> seatIds, boolean isReserved) throws SQLException {
+        if (seatIds == null || seatIds.isEmpty()) {
+            System.err.println("WARNING: No seat IDs provided for updating reservation status");
+            return true; // Return true as there's nothing to update
+        }
+        
+        System.out.println("Updating seat reservations: seats=" + seatIds + ", isReserved=" + isReserved);
+        
         String query = "UPDATE seats SET is_reserved = ? WHERE id = ?";
         boolean success = true;
         
@@ -111,25 +118,37 @@ public class SeatDAO {
                     stmt.setInt(1, isReserved ? 1 : 0);
                     stmt.setInt(2, seatId);
                     stmt.addBatch();
+                    
+                    // Print debug info
+                    System.out.println("Adding to batch: UPDATE seats SET is_reserved = " + 
+                                      (isReserved ? 1 : 0) + " WHERE id = " + seatId);
                 }
                 
                 int[] results = stmt.executeBatch();
                 
-                // Check if all updates were successful
-                for (int result : results) {
-                    if (result <= 0) {
+                // Log the results
+                System.out.println("Batch execution results: ");
+                for (int i = 0; i < results.length; i++) {
+                    System.out.println("Seat " + seatIds.get(i) + ": " + 
+                                     (results[i] > 0 ? "Updated" : "Not updated"));
+                    
+                    // Consider the update successful even if the seat wasn't changed
+                    // (this handles the case where a seat reservation status is already correct)
+                    if (results[i] < 0 && results[i] != java.sql.Statement.SUCCESS_NO_INFO) {
                         success = false;
-                        break;
                     }
                 }
                 
                 if (success) {
                     conn.commit();
+                    System.out.println("Successfully committed seat reservation updates");
                 } else {
                     conn.rollback();
+                    System.err.println("Rolled back seat reservation updates due to error");
                 }
             } catch (SQLException e) {
                 conn.rollback();
+                System.err.println("SQL exception during seat reservation update: " + e.getMessage());
                 throw e;
             } finally {
                 conn.setAutoCommit(true);
