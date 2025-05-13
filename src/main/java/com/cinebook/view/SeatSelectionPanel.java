@@ -75,6 +75,71 @@ public class SeatSelectionPanel extends JPanel {
         
         // Create the two main panels - seat map and sidebar
         createPanels();
+        
+        // Register button listeners once during initialization
+        registerButtonListeners();
+    }
+    
+    /**
+     * Action handler for the continue button.
+     * This is a consolidated method to avoid duplicate listeners.
+     */
+    private void handleContinueButtonAction() {
+        if (!selectedSeatIds.isEmpty()) {
+            boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
+            
+            if (success) {
+                mainFrame.getConcessionPanel().initialize();
+                mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
+            } else {
+                // Use the modern dialog manager for error display
+                DialogManager.showErrorDialog(
+                    mainFrame,
+                    "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
+                    "Reservation Error"
+                );
+                
+                // Refresh the seat map to show the latest seat statuses
+                refreshSeatMap();
+            }
+        }
+    }
+    
+    /**
+     * Action handler for the cancel button.
+     * This is a consolidated method to avoid duplicate listeners.
+     */
+    private void handleCancelButtonAction() {
+        int response = JOptionPane.showConfirmDialog(
+            mainFrame,
+            "Are you sure you want to cancel this reservation?",
+            "Confirm Cancellation",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (response == JOptionPane.YES_OPTION) {
+            reservationController.cancelReservationProcess();
+            mainFrame.navigateTo(MainFrame.MOVIE_LISTING_PANEL);
+        }
+    }
+    
+    /**
+     * Registers action listeners for all buttons to avoid duplicate listeners.
+     * This should be called only once to set up all button actions.
+     */
+    private void registerButtonListeners() {
+        // Remove any existing listeners to prevent duplicates
+        for (ActionListener al : continueButton.getActionListeners()) {
+            continueButton.removeActionListener(al);
+        }
+        for (ActionListener al : cancelButton.getActionListeners()) {
+            cancelButton.removeActionListener(al);
+        }
+        
+        // Add our consolidated action handlers
+        continueButton.addActionListener(e -> handleContinueButtonAction());
+        cancelButton.addActionListener(e -> handleCancelButtonAction());
     }
     
     /**
@@ -269,46 +334,7 @@ public class SeatSelectionPanel extends JPanel {
         UIStyle.styleButton(continueButton, true);
         UIStyle.styleButton(cancelButton, false);
         
-        // Add action listeners
-        continueButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!selectedSeatIds.isEmpty()) {
-                    boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
-                    
-                    if (success) {
-                        mainFrame.getConcessionPanel().initialize();
-                        mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
-                    } else {
-                        DialogManager.showErrorDialog(
-                            mainFrame,
-                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
-                            "Reservation Error"
-                        );
-                        
-                        refreshSeatMap();
-                    }
-                }
-            }
-        });
-        
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                    mainFrame,
-                    "Are you sure you want to cancel this reservation?",
-                    "Confirm Cancellation",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE
-                );
-                
-                if (response == JOptionPane.YES_OPTION) {
-                    reservationController.cancelReservationProcess();
-                    mainFrame.navigateTo(MainFrame.MOVIE_LISTING_PANEL);
-                }
-            }
-        });
+        // Action listeners are now registered in registerButtonListeners()
         
         buttonPanel.add(cancelButton);
         buttonPanel.add(continueButton);
@@ -501,48 +527,26 @@ public class SeatSelectionPanel extends JPanel {
         UIStyle.styleButton(continueButton, true);
         UIStyle.styleButton(cancelButton, false);
         
-        // Add button actions
-        continueButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!selectedSeatIds.isEmpty()) {
-                    boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
-                    
-                    if (success) {
-                        mainFrame.getConcessionPanel().initialize();
-                        mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
-                    } else {
-                        // Use the modern dialog manager for error display
-                        DialogManager.showErrorDialog(
-                            mainFrame,
-                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
-                            "Reservation Error"
-                        );
-                        
-                        // Refresh the seat map to show the latest seat statuses
-                        refreshSeatMap();
-                    }
-                }
-            }
-        });
-        
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int response = JOptionPane.showConfirmDialog(
-                    mainFrame,
-                    "Are you sure you want to cancel this reservation?",
-                    "Confirm Cancellation",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE
-                );
-                
-                if (response == JOptionPane.YES_OPTION) {
-                    reservationController.cancelReservationProcess();
-                    mainFrame.navigateTo(MainFrame.MOVIE_LISTING_PANEL);
-                }
-            }
-        });
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
+        // Button listeners are centralized in registerButtonListeners() method
         
         buttonPanel.add(cancelButton);
         buttonPanel.add(continueButton);
@@ -674,29 +678,8 @@ public class SeatSelectionPanel extends JPanel {
         UIStyle.styleButton(continueButton, true);
         UIStyle.styleButton(cancelButton, false);
         
-        continueButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!selectedSeatIds.isEmpty()) {
-                    boolean success = reservationController.addSeatsToReservation(selectedSeatIds);
-                    
-                    if (success) {
-                        mainFrame.getConcessionPanel().initialize();
-                        mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
-                    } else {
-                        // Use the modern dialog manager for error display
-                        DialogManager.showErrorDialog(
-                            mainFrame,
-                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
-                            "Reservation Error"
-                        );
-                        
-                        // Refresh the seat map to show the latest seat statuses
-                        refreshSeatMap();
-                    }
-                }
-            }
-        });
+        // Add button actions - using the shared handler
+        continueButton.addActionListener(e -> handleContinueButtonAction());
         
         cancelButton.addActionListener(new ActionListener() {
             @Override
@@ -754,6 +737,9 @@ public class SeatSelectionPanel extends JPanel {
             
             // Update selection summary
             updateSelectionSummary();
+            
+            // Register button listeners properly
+            registerButtonListeners();
             
         } catch (Exception e) {
             e.printStackTrace();
