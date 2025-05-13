@@ -271,6 +271,21 @@ public class ScreeningController {
     }
     
     /**
+     * Retrieves all screenings for a specific movie.
+     *
+     * @param movieId The ID of the movie
+     * @return A list of screenings for the movie
+     */
+    public List<Screening> getScreeningsByMovie(int movieId) {
+        try {
+            return screeningDAO.getScreeningsByMovie(movieId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
      * Creates a new screening with the specified parameters.
      *
      * @param movieId The ID of the movie

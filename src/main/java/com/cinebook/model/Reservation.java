@@ -253,6 +253,16 @@ public class Reservation {
         return isGuestReservation() ? guestPhone : "";
     }
     
+    /**
+     * Gets the payment method used for this reservation.
+     * 
+     * @return The payment method string
+     */
+    public String getPaymentMethod() {
+        // This is a placeholder implementation
+        return "Credit Card";
+    }
+    
     @Override
     public String toString() {
         return "Reservation #" + id + " - " + getCustomerName() + " - " + getFormattedReservationTime();

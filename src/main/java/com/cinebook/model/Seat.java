@@ -103,6 +103,16 @@ public class Seat {
         }
     }
     
+    // Calculate the price of this seat based on a reservation
+    public double getPrice(Reservation reservation) {
+        // Default prices if we can't determine the actual price
+        if (seatType == SeatType.DELUXE) {
+            return 150.0; // Default deluxe price
+        } else {
+            return 100.0; // Default standard price
+        }
+    }
+    
     @Override
     public String toString() {
         return seatNumber + " (" + seatType + ")";

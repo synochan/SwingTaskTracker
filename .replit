@@ -2,6 +2,7 @@ modules = ["java"]
 
 [nix]
 channel = "stable-24_05"
+packages = ["wget", "openjdk"]
 
 [workflows]
 runButton = "Project"
@@ -15,26 +16,13 @@ author = "agent"
 task = "workflow.run"
 args = "CineBookCDO"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "java_application"
-
 [[workflows.workflow]]
 name = "CineBookCDO"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd src && javac -d ../bin main/java/com/cinebook/Main.java && java -cp ../bin main.java.com.cinebook.Main"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "java_application"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "java -cp .:lib/* com.cinebook.Main"
+args = "./compile.sh"
 
 [deployment]
 run = ["sh", "-c", "cd src && javac -d ../bin main/java/com/cinebook/Main.java && java -cp ../bin main.java.com.cinebook.Main"]
