@@ -123,18 +123,35 @@ public class ReservationController {
             // Clear any previously selected seats
             currentReservation.setSelectedSeats(new ArrayList<>());
             
-            // Add each selected seat to the reservation
+            // Validation - check if any of the seats are already reserved
+            boolean anyReserved = false;
+            List<Seat> allSeats = new ArrayList<>();
+            
             for (int seatId : selectedSeatIds) {
                 Seat seat = seatDAO.getSeatById(seatId);
-                if (seat != null && !seat.isReserved()) {
-                    currentReservation.addSeat(seat);
+                if (seat != null) {
+                    allSeats.add(seat);
+                    if (seat.isReserved()) {
+                        anyReserved = true;
+                    }
                 }
+            }
+            
+            // If any seat is already reserved, cannot proceed
+            if (anyReserved) {
+                return false;
+            }
+            
+            // Add all the seats to the reservation
+            for (Seat seat : allSeats) {
+                currentReservation.addSeat(seat);
             }
             
             // Calculate the total amount
             Screening screening = screeningDAO.getScreeningById(currentReservation.getScreeningId());
             currentReservation.calculateTotalAmount(screening);
             
+            // Ensure we have at least one seat
             return !currentReservation.getSelectedSeats().isEmpty();
         } catch (SQLException e) {
             e.printStackTrace();

@@ -8,12 +8,15 @@ import com.cinebook.model.Cinema;
 import com.cinebook.model.Screening;
 import com.cinebook.model.Seat;
 import com.cinebook.model.SeatType;
+import com.cinebook.util.UIStyle;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,14 +111,31 @@ public class SeatSelectionPanel extends JPanel {
     private void createSeatMapPanel() {
         JPanel centerPanel = new JPanel(new BorderLayout());
         
-        // Screen label
+        // Screen label with modern styling
+        JPanel screenPanel = new JPanel(new BorderLayout());
+        screenPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
+        screenPanel.setBackground(UIStyle.BACKGROUND_COLOR);
+        
         screenLabel = new JLabel("SCREEN", JLabel.CENTER);
         screenLabel.setOpaque(true);
-        screenLabel.setBackground(Color.LIGHT_GRAY);
-        screenLabel.setForeground(Color.BLACK);
-        screenLabel.setPreferredSize(new Dimension(0, 30));
-        screenLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        centerPanel.add(screenLabel, BorderLayout.NORTH);
+        screenLabel.setBackground(UIStyle.PRIMARY_DARK);
+        screenLabel.setForeground(Color.WHITE);
+        screenLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+        screenLabel.setPreferredSize(new Dimension(0, 40));
+        screenLabel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UIStyle.PRIMARY_COLOR, 2),
+            BorderFactory.createEmptyBorder(8, 0, 8, 0)
+        ));
+        
+        // Add a subtle shadow effect
+        JPanel shadowPanel = new JPanel();
+        shadowPanel.setBackground(UIStyle.PRIMARY_LIGHT);
+        shadowPanel.setPreferredSize(new Dimension(0, 4));
+        
+        screenPanel.add(screenLabel, BorderLayout.NORTH);
+        screenPanel.add(shadowPanel, BorderLayout.CENTER);
+        
+        centerPanel.add(screenPanel, BorderLayout.NORTH);
         
         // Seat map panel
         seatMapPanel = new JPanel();
@@ -123,13 +143,25 @@ public class SeatSelectionPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(seatMapPanel);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Legend panel
-        legendPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        legendPanel.setBorder(BorderFactory.createTitledBorder("Legend"));
+        // Legend panel with modern styling
+        legendPanel = new JPanel();
+        legendPanel.setBackground(UIStyle.SURFACE_COLOR);
         
+        // Create a stylish title
+        JLabel titleLabel = new JLabel("Legend");
+        titleLabel.setFont(UIStyle.SUBTITLE_FONT);
+        titleLabel.setForeground(UIStyle.TEXT_PRIMARY);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        
+        // Create a panel for legend items with grid layout
+        JPanel itemsPanel = new JPanel(new GridLayout(0, 3, 15, 8));
+        itemsPanel.setBackground(UIStyle.SURFACE_COLOR);
+        
+        // Create legend items with improved colors
         JPanel availablePanel = createLegendItem("Available", Color.WHITE);
-        JPanel selectedPanel = createLegendItem("Selected", Color.GREEN);
-        JPanel reservedPanel = createLegendItem("Reserved", Color.RED);
+        JPanel selectedPanel = createLegendItem("Selected", UIStyle.ACCENT_COLOR);
+        JPanel reservedPanel = createLegendItem("Reserved", UIStyle.ERROR_COLOR);
         JPanel standardPanel = createLegendItem("Standard (₱" + 
             (currentScreening != null ? String.format("%.2f", currentScreening.getStandardSeatPrice()) : "0.00") + 
             ")", Color.WHITE);
@@ -137,11 +169,22 @@ public class SeatSelectionPanel extends JPanel {
             (currentScreening != null ? String.format("%.2f", currentScreening.getDeluxeSeatPrice()) : "0.00") + 
             ")", new Color(255, 220, 220)); // Light pink for deluxe
         
-        legendPanel.add(availablePanel);
-        legendPanel.add(selectedPanel);
-        legendPanel.add(reservedPanel);
-        legendPanel.add(standardPanel);
-        legendPanel.add(deluxePanel);
+        itemsPanel.add(availablePanel);
+        itemsPanel.add(selectedPanel);
+        itemsPanel.add(reservedPanel);
+        itemsPanel.add(standardPanel);
+        itemsPanel.add(deluxePanel);
+        
+        // Main panel with title and items
+        legendPanel.setLayout(new BorderLayout());
+        legendPanel.add(titleLabel, BorderLayout.NORTH);
+        legendPanel.add(itemsPanel, BorderLayout.CENTER);
+        
+        // Add stylish border
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
         
         centerPanel.add(legendPanel, BorderLayout.SOUTH);
         
@@ -149,21 +192,43 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
-     * Creates a legend item with a color box and label.
+     * Creates a modern legend item with a color box and label.
      *
      * @param text The text for the legend item
      * @param color The color for the legend item
      * @return The created JPanel
      */
     private JPanel createLegendItem(String text, Color color) {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        panel.setBackground(UIStyle.SURFACE_COLOR);
         
-        JPanel colorBox = new JPanel();
-        colorBox.setPreferredSize(new Dimension(20, 20));
-        colorBox.setBackground(color);
-        colorBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        // Create a rounded color box
+        JPanel colorBox = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Fill rounded rectangle
+                g2d.setColor(color);
+                g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 5, 5);
+                
+                // Draw border
+                g2d.setColor(UIStyle.PRIMARY_COLOR);
+                g2d.setStroke(new BasicStroke(1.0f));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 5, 5);
+                
+                g2d.dispose();
+            }
+        };
         
+        colorBox.setPreferredSize(new Dimension(24, 24));
+        colorBox.setOpaque(false);
+        
+        // Create a stylish label
         JLabel label = new JLabel(text);
+        label.setFont(UIStyle.BODY_FONT);
+        label.setForeground(UIStyle.TEXT_PRIMARY);
         
         panel.add(colorBox);
         panel.add(label);
@@ -193,15 +258,24 @@ public class SeatSelectionPanel extends JPanel {
         
         selectionPanel.add(infoPanel, BorderLayout.CENTER);
         
-        // Add AR Preview button to the selection panel
+        // Add AR Preview button to the selection panel with modern styling
         arPreviewButton = new JButton("AR Seat Preview");
-        // Create a simple icon if the image is not available
+        // Use our custom AR icon
         try {
-            arPreviewButton.setIcon(new ImageIcon(getClass().getResource("/resources/images/ar_icon.png")));
+            arPreviewButton.setIcon(new ImageIcon(new File("resources/icons/ar_icon.svg").getAbsolutePath()));
         } catch (Exception e) {
             // Use text only if icon is not available
+            System.err.println("AR icon not found: " + e.getMessage());
         }
         arPreviewButton.setEnabled(false); // Initially disabled until seats are selected
+        
+        // Apply modern styling with accent color
+        arPreviewButton.setBackground(UIStyle.ACCENT_COLOR);
+        arPreviewButton.setForeground(Color.WHITE);
+        arPreviewButton.setFont(UIStyle.BUTTON_FONT);
+        arPreviewButton.setBorderPainted(false);
+        arPreviewButton.setFocusPainted(false);
+        
         arPreviewButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -216,12 +290,17 @@ public class SeatSelectionPanel extends JPanel {
         
         bottomPanel.add(selectionPanel, BorderLayout.CENTER);
         
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Button panel with modern styling
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        buttonPanel.setBackground(UIStyle.SURFACE_COLOR);
         
         continueButton = new JButton("Continue to Concessions");
         continueButton.setEnabled(false);
         cancelButton = new JButton("Cancel");
+        
+        // Apply modern styling to buttons
+        UIStyle.styleButton(continueButton, true);
+        UIStyle.styleButton(cancelButton, false);
         
         continueButton.addActionListener(new ActionListener() {
             @Override
@@ -233,24 +312,15 @@ public class SeatSelectionPanel extends JPanel {
                         mainFrame.getConcessionPanel().initialize();
                         mainFrame.navigateTo(MainFrame.CONCESSION_PANEL);
                     } else {
-                        // Create a modern error dialog with an icon
-                        JPanel errorPanel = new JPanel(new BorderLayout(10, 10));
-                        errorPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                        // Use the modern dialog manager for error display
+                        DialogManager.showErrorDialog(
+                            mainFrame,
+                            "Unable to add seats to your reservation. This might happen if seats have been reserved by another user. Please try selecting different seats.",
+                            "Reservation Error"
+                        );
                         
-                        // Add error icon
-                        JLabel iconLabel = new JLabel();
-                        iconLabel.setIcon(UIManager.getIcon("OptionPane.errorIcon"));
-                        errorPanel.add(iconLabel, BorderLayout.WEST);
-                        
-                        // Error message
-                        JLabel messageLabel = new JLabel("Failed to add seats to the reservation. Please try again.");
-                        messageLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
-                        errorPanel.add(messageLabel, BorderLayout.CENTER);
-                        
-                        JOptionPane.showMessageDialog(mainFrame,
-                            errorPanel,
-                            "Reservation Error",
-                            JOptionPane.ERROR_MESSAGE);
+                        // Refresh the seat map to show the latest seat statuses
+                        refreshSeatMap();
                     }
                 }
             }
@@ -306,6 +376,38 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
+     * Refreshes the seat map to reflect the latest seat status.
+     * This is useful when seat reservation status might have changed.
+     */
+    private void refreshSeatMap() {
+        if (currentScreening != null) {
+            try {
+                // Clear the current selection
+                selectedSeatIds.clear();
+                seatButtons.clear();
+                
+                // Reload the seats
+                loadSeatMap();
+                
+                // Reset selection summary
+                updateSelectionSummary();
+                
+                // Disable action buttons
+                continueButton.setEnabled(false);
+                arPreviewButton.setEnabled(false);
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                DialogManager.showErrorDialog(
+                    mainFrame, 
+                    "An error occurred while refreshing the seat map. Please try again.",
+                    "Refresh Error"
+                );
+            }
+        }
+    }
+    
+    /**
      * Updates the screening information display.
      */
     private void updateScreeningInfo() {
@@ -321,16 +423,27 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
-     * Updates the legend with current pricing.
+     * Updates the legend with current pricing and modern styling.
      */
     private void updateLegend() {
         // Remove all components
         legendPanel.removeAll();
         
-        // Add updated legend items
+        // Create a stylish title
+        JLabel titleLabel = new JLabel("Legend");
+        titleLabel.setFont(UIStyle.SUBTITLE_FONT);
+        titleLabel.setForeground(UIStyle.TEXT_PRIMARY);
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        
+        // Create a panel for legend items with grid layout
+        JPanel itemsPanel = new JPanel(new GridLayout(0, 3, 15, 8));
+        itemsPanel.setBackground(UIStyle.SURFACE_COLOR);
+        
+        // Create legend items with improved colors
         JPanel availablePanel = createLegendItem("Available", Color.WHITE);
-        JPanel selectedPanel = createLegendItem("Selected", Color.GREEN);
-        JPanel reservedPanel = createLegendItem("Reserved", Color.RED);
+        JPanel selectedPanel = createLegendItem("Selected", UIStyle.ACCENT_COLOR);
+        JPanel reservedPanel = createLegendItem("Reserved", UIStyle.ERROR_COLOR);
         JPanel standardPanel = createLegendItem("Standard (₱" + 
             (currentScreening != null ? String.format("%.2f", currentScreening.getStandardSeatPrice()) : "0.00") + 
             ")", Color.WHITE);
@@ -338,13 +451,25 @@ public class SeatSelectionPanel extends JPanel {
             (currentScreening != null ? String.format("%.2f", currentScreening.getDeluxeSeatPrice()) : "0.00") + 
             ")", new Color(255, 220, 220)); // Light pink for deluxe
         
-        legendPanel.add(availablePanel);
-        legendPanel.add(selectedPanel);
-        legendPanel.add(reservedPanel);
-        legendPanel.add(standardPanel);
-        legendPanel.add(deluxePanel);
+        // Add items to the items panel
+        itemsPanel.add(availablePanel);
+        itemsPanel.add(selectedPanel);
+        itemsPanel.add(reservedPanel);
+        itemsPanel.add(standardPanel);
+        itemsPanel.add(deluxePanel);
         
-        // Update the UI
+        // Add to legend panel with proper layout
+        legendPanel.setLayout(new BorderLayout());
+        legendPanel.add(titleLabel, BorderLayout.NORTH);
+        legendPanel.add(itemsPanel, BorderLayout.CENTER);
+        
+        // Add stylish border
+        legendPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(UIStyle.PRIMARY_LIGHT, 1),
+            BorderFactory.createEmptyBorder(10, 15, 10, 15)
+        ));
+        
+        // Ensure UI is updated
         legendPanel.revalidate();
         legendPanel.repaint();
     }
@@ -480,11 +605,13 @@ public class SeatSelectionPanel extends JPanel {
     }
     
     /**
-     * Custom JButton class for representing a seat.
+     * Custom JButton class for representing a seat with modern styling.
      */
     private class SeatButton extends JButton {
         private Seat seat;
         private boolean selected;
+        private static final int BUTTON_SIZE = 40;
+        private static final int CORNER_RADIUS = 8;
         
         /**
          * Constructor for SeatButton.
@@ -496,9 +623,58 @@ public class SeatSelectionPanel extends JPanel {
             this.selected = false;
             
             setText(seat.getSeatNumber());
-            setMargin(new Insets(2, 2, 2, 2));
+            setMargin(new Insets(0, 0, 0, 0));
             setFocusPainted(false);
+            setContentAreaFilled(false); // We'll do custom painting
+            setOpaque(false);
+            setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+            setFont(new Font("SansSerif", Font.BOLD, 11));
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
             updateAppearance();
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Draw button background
+            if (seat.isReserved()) {
+                g2d.setColor(UIStyle.ERROR_COLOR);
+            } else if (selected) {
+                g2d.setColor(UIStyle.SUCCESS_COLOR);
+            } else if (seat.getSeatType() == SeatType.DELUXE) {
+                g2d.setColor(new Color(255, 182, 193)); // Light pink for deluxe
+            } else {
+                g2d.setColor(UIStyle.SURFACE_COLOR);
+            }
+            
+            // Draw rounded rectangle for seat
+            g2d.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS);
+            
+            // Draw border
+            if (!seat.isReserved()) {
+                g2d.setColor(UIStyle.PRIMARY_COLOR);
+                g2d.setStroke(new BasicStroke(1.5f));
+                g2d.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS);
+            }
+            
+            // Draw text
+            FontMetrics fm = g2d.getFontMetrics();
+            Rectangle2D rect = fm.getStringBounds(getText(), g2d);
+            
+            int textX = (getWidth() - (int) rect.getWidth()) / 2;
+            int textY = (getHeight() - (int) rect.getHeight()) / 2 + fm.getAscent();
+            
+            if (seat.isReserved() || selected) {
+                g2d.setColor(Color.WHITE);
+            } else {
+                g2d.setColor(UIStyle.TEXT_PRIMARY);
+            }
+            
+            g2d.drawString(getText(), textX, textY);
+            g2d.dispose();
         }
         
         /**
@@ -506,27 +682,19 @@ public class SeatSelectionPanel extends JPanel {
          */
         public void updateAppearance() {
             if (seat.isReserved()) {
-                setBackground(Color.RED);
-                setForeground(Color.WHITE);
                 setEnabled(false);
-                setBorderPainted(false);
                 setToolTipText("This seat is already reserved");
             } else if (selected) {
-                setBackground(Color.GREEN);
-                setForeground(Color.BLACK);
-                setBorderPainted(true);
+                setEnabled(true);
                 setToolTipText("Selected seat");
             } else {
-                // Set background based on seat type
-                if (seat.getSeatType() == SeatType.DELUXE) {
-                    setBackground(new Color(255, 220, 220)); // Light pink for deluxe
-                } else {
-                    setBackground(Color.WHITE);
-                }
-                setForeground(Color.BLACK);
-                setBorderPainted(true);
-                setToolTipText(seat.getSeatType() + " seat");
+                setEnabled(true);
+                setToolTipText(seat.getSeatType() + " seat - ₱" + 
+                    (seat.getSeatType() == SeatType.DELUXE ? 
+                        currentScreening.getDeluxeSeatPrice() : 
+                        currentScreening.getStandardSeatPrice()));
             }
+            repaint();
         }
         
         /**

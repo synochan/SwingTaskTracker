@@ -1,8 +1,10 @@
 package com.cinebook.view;
 
 import com.cinebook.controller.UserController;
+import com.cinebook.util.UIStyle;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -32,19 +34,23 @@ public class LoginPanel extends JPanel {
         this.mainFrame = mainFrame;
         this.userController = userController;
         
-        // Setup panel properties
+        // Setup panel properties with modern styling
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createEmptyBorder(50, 100, 50, 100));
+        setBackground(UIStyle.BACKGROUND_COLOR);
         
-        // Create title
-        JLabel titleLabel = new JLabel("CineBook CDO", JLabel.CENTER);
-        titleLabel.setFont(new Font("Serif", Font.BOLD, 36));
+        // Create modern header with app logo
+        JPanel headerPanel = UIStyle.createHeaderPanel("CineBook CDO");
         
+        // Add subtitle
         JLabel subtitleLabel = new JLabel("Online Movie Ticket Booking System", JLabel.CENTER);
-        subtitleLabel.setFont(new Font("Serif", Font.ITALIC, 18));
+        subtitleLabel.setFont(UIStyle.SUBTITLE_FONT);
+        subtitleLabel.setForeground(Color.WHITE);
         
+        // Create title panel with gradient background
         JPanel titlePanel = new JPanel(new BorderLayout());
-        titlePanel.add(titleLabel, BorderLayout.CENTER);
+        titlePanel.setBackground(UIStyle.PRIMARY_COLOR);
+        titlePanel.add(headerPanel, BorderLayout.CENTER);
         titlePanel.add(subtitleLabel, BorderLayout.SOUTH);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 30, 0));
         
